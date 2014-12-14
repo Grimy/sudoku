@@ -4,19 +4,20 @@
 static char grid[82] = {0};
 
 /* Returns 1 if the grid is in a valid state, 0 otherwise */
-static int check_grid(char *pos) {
-	for (long i = 0; i < 20; ++i)
-		if (grid[graph[pos - grid][i]] == *pos)
+static int check_grid(long pos) {
+	const long* const neighbors = graph[pos];
+	for (long i = 0; i < (long) (sizeof(*graph) / sizeof(**graph)); ++i)
+		if (grid[neighbors[i]] == grid[pos])
 			return 0;
 	return 1;
 }
 
 /* Tries to fill the grid with a solution . Returns 1 on success,
    0 on failure (requires backtracking) */
-static int solve_grid(char *pos) {
-	if (*pos != ':')
-		return *pos ? solve_grid(pos + 1) : 1;
-	for (*pos = '1';  *pos <= '9'; ++*pos)
+static int solve_grid(long pos) {
+	if (grid[pos] != ':')
+		return grid[pos] ? solve_grid(pos + 1) : 1;
+	for (grid[pos] = '1';  grid[pos] <= '9'; ++grid[pos])
 		if (check_grid(pos) && solve_grid(pos + 1))
 			return 1;
 	return 0;
@@ -44,7 +45,7 @@ static void display_grid() {
 
 int main(void) {
 	fgets(grid, sizeof(grid), stdin);
-	int solved = solve_grid(grid);
+	int solved = solve_grid(0);
 	if (solved)
 		display_grid();
 	else
