@@ -15,6 +15,11 @@ sudoku: sudoku.c
 stat: sudoku
 	perf stat -d -etask-clock -epage-faults -ecycles -einstructions -ealignment-faults ./$< < $<.in
 
+.PHONY: report
+report: sudoku
+	perf record -e LLC-load-misses ./$< < $<.in
+	perf report
+
 .PHONY: debug
 debug:
 	gcc $(CCFLAGS) $(DEBUG) sudoku.c
