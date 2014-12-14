@@ -1,3 +1,8 @@
+/* This file was generated automatically. */
+
+/* The adjency list for the sudoku graph. Each node represents a cell; two
+   nodes are neighbours iff the cells they represent can’t hold the same digit
+   (i.e. they are in the same row, column or region). */
 int graph[81][20] = {
 	{9, 18, 27, 36, 45, 54, 63, 72, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 19, 20},
 	{10, 19, 28, 37, 46, 55, 64, 73, 0, 2, 3, 4, 5, 6, 7, 8, 9, 11, 18, 20},

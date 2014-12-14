@@ -11,7 +11,8 @@ static int check_grid(char *pos) {
 	return 1;
 }
 
-/* Returns 0 on failure (need to backtrack) */
+/* Tries to fill the grid with a solution . Returns 1 on success,
+   0 on failure (requires backtracking) */
 static int solve_grid(char *pos) {
 	if (*pos != ':')
 		return *pos ? solve_grid(pos + 1) : 1;
