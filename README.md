@@ -28,6 +28,10 @@ sudoku.in as the input file, it should look like this:
     ║5┃4┃7║1┃2┃8║6┃3┃9║
     ╚═╧═╧═╩═╧═╧═╩═╧═╧═╝
 
+If it doesn’t display correctly on your computer, either your software or your
+fonts don’t properly support UTF-8 (*e.g.* Courier has issues with box-drawing
+characters).
+
 To compile and run the code with the test input sudoku.in, simply run:
 
     make
