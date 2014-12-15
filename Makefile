@@ -17,7 +17,7 @@ stat: sudoku
 
 .PHONY: report
 report: sudoku
-	perf record -e LLC-load-misses ./$< < $<.in
+	perf record -einstructions ./$< < $<.in
 	perf report
 
 .PHONY: debug

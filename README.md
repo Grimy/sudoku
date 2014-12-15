@@ -1,7 +1,7 @@
 A simple sudoku solver. Reads a grid from standard input and prints the
 solution on standard output.
 
-The input should match `^[1-9:]{81}` (81 digits or spaces). Each character
+The input should match `^[1-9:]{81}` (81 digits or colons). Each character
 represent the content of one cell of the grid, in Z-order; colon means “empty”.
 See the sudoku.in file for an example.
 
@@ -36,3 +36,5 @@ To compile and run the code with the test input sudoku.in, simply run:
 
     make
 
+sudoku.in is supposedly a list of the 95 hardest sudoku grids in existence. It
+was stolen from [dos486](http://www.dos486.com/sudoku/top95.txt).
