@@ -46,8 +46,8 @@ static int solve_grid(long pos) {
 }
 
 int main(void) {
-	fgets(grid, sizeof(grid), stdin);
-	if (!solve_grid(0) && ASSUME_SINGLE_SOLUTION)
-		printf("No solution!\n");
+	while (fgets(grid, sizeof(grid), stdin) && getchar() == '\n')
+		if (!solve_grid(0) && ASSUME_SINGLE_SOLUTION)
+			printf("No solution!\n");
 	return 0;
 }
