@@ -2,3 +2,4 @@ a.out
 *.gcda
 sudoku
 perf.data*
+perf.svg

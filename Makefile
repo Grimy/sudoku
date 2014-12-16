@@ -7,17 +7,15 @@ run: sudoku
 	./$< < $<.in
 
 sudoku: sudoku.c
-	$(CC) $(CCFLAGS) $(OPTI) -fprofile-generate $< -o $@
-	./$@ < $@.in
-	$(CC) $(CCFLAGS) $(OPTI) -fprofile-use $< -o $@
+	$(CC) $(CCFLAGS) $(OPTI) $< -o $@
 
 .PHONY: stat
 stat: sudoku
-	perf stat -d -etask-clock -epage-faults -ecycles -einstructions -ealignment-faults ./$< < $<.in
+	perf stat -d -etask-clock -epage-faults -ecycles -einstructions -ebranch -ebranch-misses ./$< < $<.in
 
 .PHONY: report
 report: sudoku
-	perf record -einstructions ./$< < $<.in
+	perf record -g -einstructions ./$< < $<.in
 	perf report
 
 .PHONY: debug
