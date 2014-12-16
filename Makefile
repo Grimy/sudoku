@@ -1,6 +1,6 @@
-CCFLAGS = -Wall -Wextra -pedantic -Werror -std=c99 -march=native
+CCFLAGS = -Wall -Wextra -Werror -Wno-override-init -std=gnu99 -march=native
 OPTI = -fno-asynchronous-unwind-tables -Ofast
-DEBUG = -Og -ggdb -fsanitize=address,leak,undefined
+DEBUG = -O0 -ggdb
 
 .PHONY: run
 run: sudoku
@@ -9,16 +9,19 @@ run: sudoku
 sudoku: sudoku.c
 	$(CC) $(CCFLAGS) $(OPTI) $< -o $@
 
+a.out: sudoku.c
+	gcc $(CCFLAGS) $(DEBUG) $<
+
 .PHONY: stat
 stat: sudoku
-	perf stat -d -etask-clock -epage-faults -ecycles -einstructions -ebranch -ebranch-misses ./$< < $<.in
+	perf stat -d -etask-clock -epage-faults -ecycles -einstructions -ebranch -ebranch-misses ./$< < $<.in | tee $<.out
+	cmp $<.out answers
 
 .PHONY: report
-report: sudoku
-	perf record -g -einstructions ./$< < $<.in
+report: a.out
+	perf record -g -einstructions ./$< < sudoku.in
 	perf report
 
 .PHONY: debug
-debug:
-	gcc $(CCFLAGS) $(DEBUG) sudoku.c
-	./a.out < sudoku.in
+debug: a.out
+	gdb ./a.out

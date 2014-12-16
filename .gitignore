@@ -1,5 +1,6 @@
 a.out
 *.gcda
 sudoku
+sudoku.out
 perf.data*
 perf.svg
