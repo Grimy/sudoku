@@ -39,7 +39,7 @@ static void fill_cell(long pos, long c) {
 	}
 }
 
-static int fill_grid() {
+static int fill_grid(void) {
 	memset(graph, 255, sizeof(graph));
 	memset(gcounts, 0, sizeof(gcounts));
 	for (long pos = 0; pos < 81; ++pos)
@@ -49,10 +49,10 @@ static int fill_grid() {
 	return getchar() == '\n';
 }
 
-static int display_grid() {
+static int display_grid(void) {
 	char digits[82] = {0};
 	for (long i = 0; i < 81; ++i)
-		digits[i] = '1' + __builtin_ctz(MANGLE(grid[i]));
+		digits[i] = (char) ('1' + __builtin_ctz((unsigned) MANGLE(grid[i])));
 	printf("%s\n", digits);
 	fflush(stdout);
 	return ASSUME_SINGLE_SOLUTION;
@@ -75,7 +75,7 @@ static void remove_digit(long pos, long mask) {
 
 /* Tries to fill the grid with a solution . Returns 1 on success,
    0 on failure (requires backtracking) */
-int solve_grid(long pos) {
+static int solve_grid(long pos) {
 	if (pos == 81)
 		return display_grid();
 	if (predef[pos])
