@@ -2,41 +2,39 @@ NAME = sudoku
 EXTRA_FLAGS = -pedantic
 ARGS = < sudoku.in
 
-MAKEFLAGS += --no-builtin-rules --no-builtin-vars --quiet
-CFLAGS += -xc -std=c99 -fstrict-aliasing -fstrict-overflow -march=native
+# End of project-specific configuration; what follows is generic copy-pasta
 
-WALL += error
-ifeq ($(CC),clang)
+MAKEFLAGS += --no-builtin-rules --no-builtin-vars --quiet
+
+WALL = all extra error
+ifeq ($(CC), clang)
+	PROF := -fprofile-instr
 	WALL += everything no-gnu
 else
-	WALL += all extra
+	PROF := -fprofile
 	WALL += bad-function-cast c++-compat cast-align cast-qual conversion
 	WALL += disabled-optimization float-equal format=2 init-self inline
-	WALL += invalid-pch logical-op long-long missing-include-dirs
+	WALL += invalid-pch logical-op long-long missing-format-attribute
+	WALL += missing-include-dirs missing-noreturn
 	WALL += nested-externs old-style-definition packed padded
 	WALL += redundant-decls shadow strict-prototypes switch-default
 	WALL += switch-enum unreachable-code unsafe-loop-optimizations unused
 	WALL += vector-operation-performance write-strings
-	# WALL += -Wsuggest-attribute=pure,const,noreturn,format
 endif
-CFLAGS += $(foreach W,$(WALL),-W$W) $(EXTRA_FLAGS)
 
-OPTI = -Ofast -fno-asynchronous-unwind-tables
-
+override CFLAGS := -std=c99 -march=native $(foreach W,$(WALL),-W$W) $(CFLAGS)
+OPTI = -Ofast -fstrict-aliasing -fstrict-overflow -fno-asynchronous-unwind-tables
 DEBUG = -O1 -ggdb
 SAN = -fsanitize=address,leak,undefined
 ifeq (, $(shell echo | $(CC) $(SAN) -fsyntax-only -xc - 2>&1))
 	DEBUG += $(SAN)
 endif
 
-PERF_EVENTS += -etask-clock -epage-faults -ecycles -einstructions -ebranch -ebranch-misses
+PERF_EVENTS := -etask-clock -epage-faults -ecycles -einstructions -ebranch -ebranch-misses
 
 $(NAME): $(NAME).c Makefile
 	echo CC $<
 	$(CC) $(CFLAGS) $(OPTI) $< -o $@
-	# $(CC) $(CFLAGS) $(OPTI) -fprofile-generate $< -o $@
-	# ./$@ $(ARGS)
-	# $(CC) $(CFLAGS) $(OPTI) -fprofile-use $< -o $@
 
 $(NAME)-debug: $(NAME).c Makefile
 	echo CC $<
@@ -50,6 +48,15 @@ $(NAME).s: $(NAME).c Makefile
 run: $(NAME)
 	./$< $(ARGS)
 
+.PHONY: pgo
+pgo: $(NAME).c Makefile
+	echo CC -fprofile-generate $<
+	$(CC) $(CFLAGS) $(OPTI) $(PROF)-generate $<
+	./a.out $(ARGS)
+	llvm-profdata merge default.profraw -o $(NAME).gcda || true
+	echo CC -fprofile-use $<
+	$(CC) $(CFLAGS) $(OPTI) $(PROF)-use=$(NAME).gcda $< -o $(NAME)
+
 .PHONY: debug
 debug: $(NAME)-debug
 	gdb -q -ex 'br main' -ex 'r $(ARGS)' ./$<
@@ -57,9 +64,9 @@ debug: $(NAME)-debug
 .PHONY: stat
 stat: $(NAME)
 	echo STAT $<
-	perf stat -d $(PERF_EVENTS) ./$< >/dev/null
+	perf stat -d $(PERF_EVENTS) ./$< $(ARGS) >/dev/null
 
 .PHONY: report
 report: $(NAME)
-	perf record ./$<
+	perf record -g ./$< $(ARGS)
 	perf report
