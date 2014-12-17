@@ -1,6 +1,12 @@
-a.out
-*.gcda
 sudoku
+sudoku-debug
 sudoku.out
+
+a.out
 perf.data*
-perf.svg
+*.bak
+*.gcda
+*.o
+*.s
+*.svg
+*.tmp
