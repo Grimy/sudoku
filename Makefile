@@ -1,17 +1,26 @@
 NAME = sudoku
-EXTRA_FLAGS = -pedantic
 ARGS = < sudoku.in
 
 # End of project-specific configuration; what follows is generic copy-pasta
 
 MAKEFLAGS += --no-builtin-rules --no-builtin-vars --quiet
+CFLAGS += -std=c99 -march=native -fstrict-aliasing -fstrict-overflow
 
-WALL = all extra error
+WALL = all extra pedantic error
+OPTI = -Ofast -fno-asynchronous-unwind-tables
+DEBUG = -O1 -ggdb
+
+SAN = -fsanitize=address,leak,undefined
+ifeq (, $(shell echo | $(CC) $(SAN) -fsyntax-only -xc - 2>&1))
+	DEBUG += $(SAN)
+endif
+
 ifeq ($(CC), clang)
-	PROF := -fprofile-instr
-	WALL += everything no-gnu
+	PROF = -fprofile-instr
+	WALL += everything
 else
-	PROF := -fprofile
+	PROF = -fprofile
+	OPTI += -fgcse-sm -fgcse-las
 	WALL += bad-function-cast c++-compat cast-align cast-qual conversion
 	WALL += disabled-optimization float-equal format=2 init-self inline
 	WALL += invalid-pch logical-op long-long missing-format-attribute
@@ -21,16 +30,9 @@ else
 	WALL += switch-enum unreachable-code unsafe-loop-optimizations unused
 	WALL += vector-operation-performance write-strings
 endif
+override CFLAGS := $(foreach W, $(WALL), -W$W) -fdiagnostics-color $(CFLAGS)
 
-override CFLAGS := -std=c99 -march=native $(foreach W,$(WALL),-W$W) $(CFLAGS)
-OPTI = -Ofast -fstrict-aliasing -fstrict-overflow -fno-asynchronous-unwind-tables
-DEBUG = -O1 -ggdb
-SAN = -fsanitize=address,leak,undefined
-ifeq (, $(shell echo | $(CC) $(SAN) -fsyntax-only -xc - 2>&1))
-	DEBUG += $(SAN)
-endif
-
-PERF_EVENTS := -etask-clock -epage-faults -ecycles -einstructions -ebranch -ebranch-misses
+PERF_EVENTS = task-clock page-faults cycles instructions branch branch-misses
 
 $(NAME): $(NAME).c Makefile
 	echo CC $<
@@ -64,7 +66,7 @@ debug: $(NAME)-debug
 .PHONY: stat
 stat: $(NAME)
 	echo STAT $<
-	perf stat -d $(PERF_EVENTS) ./$< $(ARGS) >/dev/null
+	perf stat -d $(foreach e, $(PERF_EVENTS), -e$e) ./$< $(ARGS) >/dev/null
 
 .PHONY: report
 report: $(NAME)
