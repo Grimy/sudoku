@@ -1,0 +1,16 @@
+NOWARN = -Wno-shadow -Wno-float-equal
+
+.gitignore
+CC = clang
+WARNINGS = -fstrict-aliasing -fstrict-overflow -Weverything -Werror $(NOWARN)
+CFLAGS = -std=c99 -Ofast -march=native -fno-asynchronous-unwind-tables
+CFLAGS += $(WARNINGS) @(CFLAGS)
+
+ifdef PGO
+	: *.c |> $(CC) $(CFLAGS) -fprofile-instr-generate %f |> a.out
+	: a.out |> ./%f |> default.profraw
+	: default.profraw |> llvm-profdata merge %f -o %o |> prof.gcda
+	: *.c | prof.gcda |> $(CC) $(CFLAGS) -fprofile-instr-use %f -o %o |> %B
+else
+	: *.c |> $(CC) $(CFLAGS) %f -o %o |> %B
+endif
